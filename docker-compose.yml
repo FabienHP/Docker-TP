@@ -4,9 +4,12 @@ services:
   mongo:
     image: mongo:latest
     ports:
-      - "27017:27017"
+      - "${MONGO_PORT}:${MONGO_PORT}"
     volumes:
       - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     networks:
       - mern-network
 
@@ -17,14 +20,14 @@ services:
     depends_on:
       - mongo
     environment:
-      - MONGO_URI=mongodb://mongo:27017/docker-tp
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:${MONGO_PORT}/docker-tp
     networks:
       - mern-network
 
   client:
     build: ./client
     ports:
-      - "3000:3000"
+      - "${CLIENT_PORT}:${CLIENT_PORT}"
     networks:
       - mern-network
 
