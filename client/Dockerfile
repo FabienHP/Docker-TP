@@ -1,0 +1,20 @@
+# Utilisez une image officielle Node.js
+FROM node:20
+
+# Créez un dossier pour l'application
+WORKDIR /usr/src/app
+
+# Copiez les fichiers package.json et package-lock.json
+COPY package*.json ./
+
+# Installez les dépendances de l'application
+RUN npm install
+
+# Copiez le reste des fichiers de l'application
+COPY . .
+
+# Exposez le port de l'application
+EXPOSE 3000
+
+# Commande pour démarrer l'application
+CMD ["npm", "start"]
