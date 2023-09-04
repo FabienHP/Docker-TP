@@ -7,6 +7,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    networks:
+      - mern-network
 
   server:
     build: ./server
@@ -16,11 +18,19 @@ services:
       - mongo
     environment:
       - MONGO_URI=mongodb://mongo:27017/docker-tp
+    networks:
+      - mern-network
 
   client:
     build: ./client
     ports:
       - "3000:3000"
+    networks:
+      - mern-network
 
 volumes:
   mongo-data:
+
+networks:
+  mern-network:
+    driver: bridge
