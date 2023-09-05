@@ -12,19 +12,22 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     networks:
-      - mern-network
+      - mongo-back-network
 
   server:
     container_name: Express
     build: ./server
     ports:
       - "3001:3001"
+    volumes:
+      - ./server:/usr/src/app
     depends_on:
       - mongo
     environment:
       - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:${MONGO_PORT}/docker-tp
     networks:
-      - mern-network
+      - front-back-network
+      - mongo-back-network
 
   client:
     container_name: React
@@ -32,12 +35,13 @@ services:
     ports:
       - "${CLIENT_PORT}:${CLIENT_PORT}"
     networks:
-      - mern-network
+      - front-back-network
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
     container_name: Elasticsearch
     environment:
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - xpack.security.enabled=false
       - discovery.type=single-node
     volumes:
@@ -45,11 +49,13 @@ services:
     ports:
       - "${ELASTIC_PORT}:9200"
     networks:
-      - mern-network
+      - elk-network
 
   logstash:
     container_name: Logstash
     image: docker.elastic.co/logstash/logstash:8.9.0
+    environment:
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
     volumes:
       - ./logstash/config/logstash.conf:/logstash_dir/logstash.conf
     command: logstash -f /logstash_dir/logstash.conf
@@ -58,19 +64,21 @@ services:
     depends_on:
       - elasticsearch
     networks:
-      - mern-network
+      - elk-network
+      - logstash-back-network
 
   kibana:
     container_name: Kibana
     image: docker.elastic.co/kibana/kibana:8.9.0
     environment:
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     ports:
       - "${KIBANA_PORT}:5601"
     depends_on:
       - elasticsearch
     networks:
-      - mern-network
+      - elk-network
 
 volumes:
   mongo-data:
@@ -79,5 +87,11 @@ volumes:
     driver: local
 
 networks:
-  mern-network:
+  front-back-network:
+    driver: bridge
+  mongo-back-network:
+    driver: bridge
+  logstash-back-network:
+    driver: bridge
+  elk-network:
     driver: bridge
