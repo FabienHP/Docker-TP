@@ -18,13 +18,13 @@ services:
     container_name: Express
     build: ./server
     ports:
-      - "3001:3001"
+      - "${SERVER_PORT}:3001"
     volumes:
       - ./server:/usr/src/app
     depends_on:
       - mongo
     environment:
-      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:${MONGO_PORT}/docker-tp
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:${MONGO_PORT}/
     networks:
       - front-back-network
       - mongo-back-network
