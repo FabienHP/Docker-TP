@@ -69,6 +69,20 @@ services:
       - elk-network
       - logstash-back-network
 
+  metricbeat:
+    container_name: Metricbeat
+    image: docker.elastic.co/beats/metricbeat:8.9.0
+    user: root
+    volumes:
+#      - metricbeatdata:/usr/share/metricbeat/data
+      - "./metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    depends_on:
+      - elasticsearch
+      - kibana
+    networks:
+      - elk-network
+
   kibana:
     container_name: Kibana
     image: docker.elastic.co/kibana/kibana:8.9.0
