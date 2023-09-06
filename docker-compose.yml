@@ -59,6 +59,7 @@ services:
     environment:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
     volumes:
+      - ./server/logs/:/usr/share/logstash/ingest_data/
       - ./logstash/config/logstash.conf:/logstash_dir/logstash.conf
     command: logstash -f /logstash_dir/logstash.conf
     ports:
@@ -74,7 +75,6 @@ services:
     image: docker.elastic.co/beats/metricbeat:8.9.0
     user: root
     volumes:
-#      - metricbeatdata:/usr/share/metricbeat/data
       - "./metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     depends_on:
