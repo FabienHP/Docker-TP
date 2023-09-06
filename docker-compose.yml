@@ -1,11 +1,12 @@
 version: '3'
 
 services:
+
   mongo:
     container_name: MongoDB
     image: mongo:latest
     ports:
-      - "${MONGO_PORT}:${MONGO_PORT}"
+      - "127.0.0.1:${MONGO_PORT}:27017"
     volumes:
       - mongo-data:/data/db
       - ./server/db/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
@@ -18,11 +19,10 @@ services:
 
   server:
     container_name: Express
-    build: ./server
+    build:
+      context: ./server
     ports:
       - "${SERVER_PORT}:3001"
-    volumes:
-      - ./server:/usr/src/app
     depends_on:
       - mongo
     environment:
@@ -33,14 +33,10 @@ services:
 
   client:
     container_name: React
-    build: ./client
-    ports:
-      - "${CLIENT_PORT}:${CLIENT_PORT}"
-    volumes:
-      - ./client:/usr/src/app
+    build:
+      context: ./client
     environment:
-      - CHOKIDAR_USEPOLLING=true
-      - REACT_APP_SERVER_URL=http://localhost:${SERVER_PORT}
+      - REACT_APP_SERVER_URL=http://127.0.0.1:${SERVER_PORT}
     networks:
       - front-back-network
 
