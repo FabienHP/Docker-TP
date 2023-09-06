@@ -1,24 +1,24 @@
-version: '3'
+version: '3' # Spécifie la version de Docker Compose utilisée.
 
-services:
+services: # Définit les services modifiés ou ajoutés pour le mode développement.
 
-  server:
-    build:
-      dockerfile: ./Dockerfile.dev
+  server: # Configuration pour le service "server" en mode développement.
+    build: # Construit une image à partir d'un Dockerfile spécifique pour le développement.
+      dockerfile: ./Dockerfile.dev # Emplacement du Dockerfile pour le développement.
     ports:
-      - "${SERVER_PORT}:3001"
-    volumes:
-      - ./server:/usr/src/app
-    environment:
+      - "${SERVER_PORT}:3001" # Mappe le port 3001 du serveur à une variable d'environnement sur l'hôte.
+    volumes: # Volume pour le code source afin d'obtenir une mise à jour en temps réel lors du développement.
+      - ./server:/usr/src/app # Montage du dossier local "server" dans le conteneur.
+    environment: # Variables d'environnement spécifiques au mode développement.
       - NODE_ENV=development
 
-  client:
+  client: # Configuration pour le service "client" (React) en mode développement.
     build:
       dockerfile: ./Dockerfile.dev
     ports:
-      - "${CLIENT_PORT}:3000"
+      - "${CLIENT_PORT}:3000" # Mappe le port 3000 du client React à une variable d'environnement sur l'hôte.
     volumes:
-      - ./client:/usr/src/app
+      - ./client:/usr/src/app # Montage du dossier local "client" dans le conteneur.
     environment:
-      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_USEPOLLING=true # Pour assurer la détection de fichiers sur certains systèmes de fichiers.
       - NODE_ENV=development

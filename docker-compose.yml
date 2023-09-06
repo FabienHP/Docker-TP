@@ -1,65 +1,65 @@
-version: '3'
+version: '3' # Spécifie la version de la syntaxe Docker Compose utilisée.
 
-services:
+services: # Définit les services qui composent votre application.
 
-  mongo:
-    container_name: MongoDB
-    image: mongo:latest
-    ports:
-      - "127.0.0.1:${MONGO_PORT}:27017"
-    volumes:
-      - mongo-data:/data/db
-      - ./server/db/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-    environment:
+  mongo: # Nom du service pour MongoDB.
+    container_name: MongoDB # Nom du conteneur Docker pour MongoDB.
+    image: mongo:latest # Image Docker utilisée.
+    ports: # Ports à exposer.
+      - "127.0.0.1:${MONGO_PORT}:27017" # Mappe le port 27017 de MongoDB à une variable d'environnement sur l'hôte.
+    volumes: # Volumes pour la persistance des données et l'initialisation.
+      - mongo-data:/data/db # Persiste les données de MongoDB.
+      - ./server/db/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro # Script d'initialisation pour MongoDB.
+    environment: # Variables d'environnement pour MongoDB.
       - MONGO_INITDB_DATABASE=docker-tp
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-    networks:
+    networks: # Réseaux auxquels ce service est connecté.
       - mongo-back-network
 
-  server:
+  server: # Nom du service pour le serveur Express.
     container_name: Express
-    build:
-      context: ./server
+    build: # Construit une image à partir d'un Dockerfile.
+      context: ./server # Emplacement du Dockerfile.
     ports:
-      - "${SERVER_PORT}:3001"
-    depends_on:
-      - mongo
-    environment:
+      - "${SERVER_PORT}:3001" # Mappe le port 3001 du serveur à une variable d'environnement sur l'hôte.
+    depends_on: # Dépendances du service.
+      - mongo # Dépend de MongoDB.
+    environment: # Variables d'environnement spécifiques au service.
       - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:${MONGO_PORT}/
-    networks:
+    networks: # Réseaux auxquels ce service est connecté.
       - front-back-network
       - mongo-back-network
 
-  client:
+  client: # Nom du service pour le client React.
     container_name: React
-    build:
-      context: ./client
-    environment:
+    build: # Construit une image à partir d'un Dockerfile.
+      context: ./client # Emplacement du Dockerfile.
+    environment: # Variables d'environnement spécifiques au service.
       - REACT_APP_SERVER_URL=http://127.0.0.1:${SERVER_PORT}
-    networks:
+    networks: # Réseaux auxquels ce service est connecté.
       - front-back-network
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+  elasticsearch: # Nom du service pour Elasticsearch.
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0 # Image Docker spécifique à Elasticsearch.
     container_name: Elasticsearch
-    environment:
+    environment: # Variables d'environnement pour Elasticsearch.
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - xpack.security.enabled=false
       - discovery.type=single-node
-    volumes:
+    volumes: # Volume pour la persistance des données Elasticsearch.
       - elastic-data:/usr/share/elasticsearch/data
     ports:
       - "${ELASTIC_PORT}:9200"
-    networks:
+    networks: # Réseaux auxquels ce service est connecté.
       - elk-network
 
-  logstash:
+  logstash: # Nom du service pour Logstash.
     container_name: Logstash
-    image: docker.elastic.co/logstash/logstash:8.9.0
+    image: docker.elastic.co/logstash/logstash:8.9.0 # Image Docker spécifique à Logstash.
     environment:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
-    volumes:
+    volumes: # Montage des fichiers de configuration de Logstash.
       - ./server/logs/:/usr/share/logstash/ingest_data/
       - ./logstash/config/logstash.conf:/logstash_dir/logstash.conf
     command: logstash -f /logstash_dir/logstash.conf
@@ -67,48 +67,48 @@ services:
       - "${LOGSTASH_PORT}:5000"
     depends_on:
       - elasticsearch
-    networks:
+    networks: # Réseaux auxquels ce service est connecté.
       - elk-network
       - logstash-back-network
 
-  metricbeat:
+  metricbeat: # Nom du service pour Metricbeat.
     container_name: Metricbeat
-    image: docker.elastic.co/beats/metricbeat:8.9.0
+    image: docker.elastic.co/beats/metricbeat:8.9.0 # Image Docker spécifique à Metricbeat.
     user: root
-    volumes:
+    volumes: # Montage des fichiers de configuration de Metricbeat.
       - "./metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     depends_on:
       - elasticsearch
       - kibana
-    networks:
+    networks: # Réseaux auxquels ce service est connecté.
       - elk-network
 
-  kibana:
+  kibana: # Nom du service pour Kibana.
     container_name: Kibana
-    image: docker.elastic.co/kibana/kibana:8.9.0
+    image: docker.elastic.co/kibana/kibana:8.9.0 # Image Docker spécifique à Kibana.
     environment:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
+    ports: # Ports à exposer.
       - "${KIBANA_PORT}:5601"
     depends_on:
       - elasticsearch
-    networks:
+    networks: # Réseaux auxquels ce service est connecté.
       - elk-network
 
-volumes:
-  mongo-data:
-    driver: local
-  elastic-data:
+volumes: # Définition des volumes.
+  mongo-data: # Volume pour les données MongoDB.
+    driver: local # Utilise le driver local pour le stockage.
+  elastic-data: # Volume pour les données Elasticsearch.
     driver: local
 
-networks:
-  front-back-network:
+networks: # Définition des réseaux.
+  front-back-network: # Réseau entre le frontend et le backend.
+    driver: bridge # Utilise le driver bridge pour la communication.
+  mongo-back-network: # Réseau pour MongoDB.
     driver: bridge
-  mongo-back-network:
+  logstash-back-network: # Réseau pour Logstash.
     driver: bridge
-  logstash-back-network:
-    driver: bridge
-  elk-network:
+  elk-network: # Réseau pour la stack ELK.
     driver: bridge
