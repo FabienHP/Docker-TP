@@ -8,7 +8,9 @@ services:
       - "${MONGO_PORT}:${MONGO_PORT}"
     volumes:
       - mongo-data:/data/db
+      - ./server/db/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     environment:
+      - MONGO_INITDB_DATABASE=docker-tp
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     networks:
